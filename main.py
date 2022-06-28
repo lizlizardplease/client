@@ -2,18 +2,20 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from mydesign import Ui_MainWindow
 from PyQt5.QtCore import pyqtSignal, QObject
-import sysgit
+import sys
 
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi()
+
     def setupUi(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.change.clicked.connect(self.btnClicked)
+        self.ui.group_chat.clicked.connect(self.gClicked)
         self.changing = 0
 
     def btnClicked(self):
@@ -26,16 +28,16 @@ class MainWindow(QMainWindow):
         self.changing += 1
         self.changing %= 2
 
-class Searcher(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setupUi()
-    def setupUi(self):
+    def gClicked(self):
+        win1 = Initialization()
+        win1.show()
+
 
 class Initialization(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi()
+
     def setupUi(self):
         self.setWindowTitle("Welcome")
         self.move(300, 300)
@@ -67,10 +69,17 @@ class Initialization(QDialog):
         self.password.move(200, 490)
         self.login.move(200, 450)
         self.password.setEchoMode(QLineEdit.Password)
+        self.signin.clicked.connect(self.signinClicked)
+
+    def signinClicked(self):
+        self.cams = MainWindow()
+        self.cams.show()
+        self.close()
+
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win = MainWindow()
+    win = Initialization()
     win.show()
     sys.exit(app.exec_())
