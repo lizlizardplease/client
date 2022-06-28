@@ -1,0 +1,18 @@
+QMainWindow {background :black;
+        font-family: "New Century Schoolbook";}
+QLabel {color: #A153F4;
+        font-size: 20px;}
+QLabel#heading {font-size: 30px;
+                color: red;}
+QPushButton {width: 250px;
+             height: 30px;
+             font-size: 20px;
+             border-radius: 3px;
+             background: white;}
+QPushButton#signin {background :#A153F4;}
+QPushButton#signup {background :red;}
+QLineEdit {width:300px;
+           background:#CEA4FC;
+           border: none;}
+QListView {background: #CEA4FC}
+QListWidget {background: #CEA4FC}
