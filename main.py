@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
                 mssg = [self.myname, self.ui.textEdit.toPlainText()]
                 writer = csv.writer(file)
                 writer.writerow(mssg)
-            self.model.insertRow(self, self.model.rowCount())
+            # self.model.insertRow(self, self.model.rowCount())
             self.ui.textEdit.clear()
 
     #def choosen(self, item):
