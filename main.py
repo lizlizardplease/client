@@ -1,36 +1,67 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from mydesign import Ui_MainWindow
+from uimainw import Ui_MainWindow
 from PyQt5.QtCore import pyqtSignal, QObject
+from searcher import Searcher
+from changedata import DataChanger
+from tablemodel import TableModel
+import csv
 import sys
 
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.chats = []
+        self.chat_name = 'self chat'
         self.setupUi()
+
 
     def setupUi(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.change.clicked.connect(self.btnClicked)
-        self.ui.group_chat.clicked.connect(self.gClicked)
-        self.changing = 0
+        self.myname = 'cursed'
+        self.filename = self.myname + '.csv'
+        f = open(self.filename, 'w')
+        f.close()
+        self.data = []
+        with open(self.filename) as data_file:
+            for line in data_file:
+                self.data.append(line.strip().split(';'))
+        self.ui.chat.clicked.connect(self.searchClicked)
+        self.ui.data.clicked.connect(self.dataClicked)
+        self.ui.send.clicked.connect(self.sendClicked)
+        #self.ui.listWidget.itemClicked(self.choosen)
+        self.model = TableModel(self.data)
+        self.ui.tableView.setModel(self.model)
 
-    def btnClicked(self):
-        if (self.changing == 1):
-            self.ui.change.setText("Change private data")
-        else:
-            self.ui.change.setText("Done")
-        self.ui.login.setReadOnly(self.changing)
-        self.ui.status.setReadOnly(self.changing)
-        self.changing += 1
-        self.changing %= 2
 
-    def gClicked(self):
-        win1 = Initialization()
-        win1.show()
+    def searchClicked(self):
+        self.cams = Searcher()
+        self.cams.show()
+
+    def dataClicked(self):
+        self.cams = DataChanger()
+        self.cams.show()
+
+    def sendClicked(self):
+        if self.chat_name not in self.chats:
+            self.chats.append(self.chat_name)
+            self.filename = self.chat_name + '.csv'
+        if self.ui.textEdit.toPlainText() != '':
+            with open(self.filename, "a", newline="") as file:
+                mssg = [self.myname, self.ui.textEdit.toPlainText()]
+                writer = csv.writer(file)
+                writer.writerow(mssg)
+            self.model.insertRow(self, self.model.rowCount())
+            self.ui.textEdit.clear()
+
+    #def choosen(self, item):
+    #    self.ui.label_2.setText(item.text())
+     #   if self.chat_name not in self.chats:
+     #       self.chats.append(self.chat_name)
+      #      self.filename = self.chat_name + '.csv'
 
 
 class Initialization(QDialog):
@@ -75,7 +106,6 @@ class Initialization(QDialog):
         self.cams = MainWindow()
         self.cams.show()
         self.close()
-
 
 
 if __name__ == "__main__":
