@@ -118,7 +118,7 @@ class Initialization(QDialog):
     def setupUi(self):
         self.setWindowTitle("Welcome")
         self.move(300, 0)
-        self.resize(800, 600)
+        self.resize(800, 620)
         with open("init.qss", "r") as file:
             style = file.read()
         self.setStyleSheet(style)
@@ -146,12 +146,47 @@ class Initialization(QDialog):
         self.password.move(200, 490)
         self.login.move(200, 450)
         self.password.setEchoMode(QLineEdit.Password)
+        self.bad_news = QLabel('', self)
+        self.bad_news.setObjectName('error')
+        self.bad_news.move(70, 580)
+        self.bad_news.setFixedWidth(700)
         self.signin.clicked.connect(self.signinClicked)
+        self.signup.clicked.connect(self.signupClicked)
 
     def signinClicked(self):
-        self.cams = MainWindow('cursed')
+        lg = self.login.text()
+        psw = self.password.text()
+        #отправить их на сервер на проверку, с сигналом вход
+        if 0: #если сервер апрувнул
+            self.cams = MainWindow('cursed') #сюда передать lg
+            self.cams.show()
+            self.close()
+        else:
+            self.bad_news.setText("Error: wrong login or password")
+
+    def signupClicked(self):
+        lg = self.login.text()
+        psw = self.password.text()
+        if len(lg) > 20:
+            self.bad_news.setText("Login is too long!")
+            return
+        if len(psw) > 20:
+            self.bad_news.setText("Password is too long!")
+            return
+        if len(lg) == 0:
+            self.bad_news.setText("Login mustn't be empty!")
+            return
+        if len(psw) == 0:
+            self.bad_news.setText("Password mustn't be empty!")
+            return
+        if not (lg.isalnum() and psw.isalnum()):
+            self.bad_news.setText("Password and login must contain only latin letters and numbers!")
+            return
+        # отправить регистрацию на сервер
+        self.cams = MainWindow('cursed')  # сюда передать lg
         self.cams.show()
         self.close()
+
 
 
 if __name__ == "__main__":
