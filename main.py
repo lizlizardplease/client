@@ -1,21 +1,24 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from uimainw import Ui_MainWindow
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import QDataStream, QByteArray
 from searcher import Searcher
 from changedata import DataChanger
 import sys
 import pickle
+from PyQt5.QtNetwork import QTcpSocket
 
 testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2-5 pos or feed immortal']
-
-
 # потом удалю
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
+        self.socket = QTcpSocket()
         self.setupUi()
 
     def setupUi(self):
@@ -43,6 +46,9 @@ class MainWindow(QMainWindow):
         self.ui.data.clicked.connect(self.dataClicked)
         self.ui.send.clicked.connect(self.sendClicked)
         self.ui.listView.clicked.connect(self.picked)
+        self.socket.readyRead.connect(self.getmessage)
+        #self.socket.disconnected.connect(self.socket.deleteLater())
+        #че ему в этот deletelater передать, не поняла вообще
 
     def searchClicked(self):
         self.cams = Searcher()
@@ -54,6 +60,7 @@ class MainWindow(QMainWindow):
 
     def sendClicked(self):
         if self.ui.textEdit.toPlainText() != '':
+            self.socket.connectToHost("127.0.0.1", 2323)
             msg = self.myname + ' : ' + self.ui.textEdit.toPlainText()
             self.data.append(msg)
             with open(self.filename, 'wb') as f:
@@ -62,6 +69,26 @@ class MainWindow(QMainWindow):
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
             f.close()
+            data_ba = QByteArray()
+            data_ba.clear()
+            out = QDataStream(data_ba)
+            out.setVersion(QDataStream.Qt_5_12)
+            out.writeQString(msg)
+            self.socket.write(data_ba)
+
+    def getmessage(self):
+        data = QDataStream(self.socket)
+        data.setVersion(QDataStream.Qt_5_12)
+        if data.status() == QDataStream.Ok:
+            mssg = data.readQString()
+            self.data.append(mssg)
+            with open(self.filename, 'wb') as f:
+                pickle.dump(self.data, f)
+            self.ui.textEdit.clear()
+            self.messagemodel.appendRow(QStandardItem(mssg))
+            self.ui.listView_2.update()
+            f.close()
+        # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
         self.chat_name = self.listmodel.itemFromIndex(index).text()
