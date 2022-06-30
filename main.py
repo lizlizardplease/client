@@ -4,7 +4,6 @@ from uimainw import Ui_MainWindow
 from PyQt5.QtCore import pyqtSignal, QObject
 from searcher import Searcher
 from changedata import DataChanger
-from tablemodel import TableModel
 import sys
 import pickle
 
