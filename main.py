@@ -14,18 +14,19 @@ testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, name, parent=None):
         super().__init__(parent)
         self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
         self.socket = QTcpSocket()
-        self.setupUi()
+        self.setupUi(name)
 
-    def setupUi(self):
+
+    def setupUi(self, name):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.myname = 'cursed'  # надо в конструктор передать после инциализации
+        self.myname = name
         self.filename = self.myname + '.pickle'
         self.listmodel = QStandardItemModel()
         self.ui.listView.setModel(self.listmodel)
@@ -148,7 +149,7 @@ class Initialization(QDialog):
         self.signin.clicked.connect(self.signinClicked)
 
     def signinClicked(self):
-        self.cams = MainWindow()
+        self.cams = MainWindow('cursed')
         self.cams.show()
         self.close()
 
