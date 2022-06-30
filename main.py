@@ -5,37 +5,45 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from searcher import Searcher
 from changedata import DataChanger
 from tablemodel import TableModel
-import csv
 import sys
+import pickle
+
+testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2-5 pos or feed immortal']
 
 
+# потом удалю
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.chats = []
-        self.chat_name = 'self chat'
+        self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
+        self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
         self.setupUi()
-
 
     def setupUi(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.myname = 'cursed'
-        self.filename = self.myname + '.csv'
-        f = open(self.filename, 'w')
-        f.close()
-        self.data = []
-        with open(self.filename) as data_file:
-            for line in data_file:
-                self.data.append(line.strip().split(';'))
+        self.myname = 'cursed'  # надо в конструктор передать после инциализации
+        self.filename = self.myname + '.pickle'
+        self.listmodel = QStandardItemModel()
+        self.ui.listView.setModel(self.listmodel)
+        for i in testing_ghouls:
+            item = QStandardItem(i)
+            self.listmodel.appendRow(item)
+        if 1:  # тут типо проверка начата ли эта перепска, но запись об этом в бд, так что пока так
+            with open(self.filename, 'rb') as f:
+                self.data = pickle.load(f)
+        else:
+            self.data = ['пока кать : мне на тебя покакать']
+        self.messagemodel = QStandardItemModel()
+        self.ui.listView_2.setModel(self.messagemodel)
+        for i in self.data:
+            item = QStandardItem(i)
+            self.messagemodel.appendRow(item)
         self.ui.chat.clicked.connect(self.searchClicked)
         self.ui.data.clicked.connect(self.dataClicked)
         self.ui.send.clicked.connect(self.sendClicked)
-        #self.ui.listWidget.itemClicked(self.choosen)
-        self.model = TableModel(self.data)
-        self.ui.tableView.setModel(self.model)
-
+        self.ui.listView.clicked.connect(self.picked)
 
     def searchClicked(self):
         self.cams = Searcher()
@@ -46,22 +54,33 @@ class MainWindow(QMainWindow):
         self.cams.show()
 
     def sendClicked(self):
+        if self.ui.textEdit.toPlainText() != '':
+            msg = self.myname + ' : ' + self.ui.textEdit.toPlainText()
+            self.data.append(msg)
+            with open(self.filename, 'wb') as f:
+                pickle.dump(self.data, f)
+            self.ui.textEdit.clear()
+            self.messagemodel.appendRow(QStandardItem(msg))
+            self.ui.listView_2.update()
+            f.close()
+
+    def picked(self, index):
+        self.chat_name = self.listmodel.itemFromIndex(index).text()
+        self.ui.label_2.setText(self.chat_name)
+        self.filename = self.chat_name + '.pickle'
         if self.chat_name not in self.chats:
             self.chats.append(self.chat_name)
-            self.filename = self.chat_name + '.csv'
-        if self.ui.textEdit.toPlainText() != '':
-            with open(self.filename, "a", newline="") as file:
-                mssg = [self.myname, self.ui.textEdit.toPlainText()]
-                writer = csv.writer(file)
-                writer.writerow(mssg)
-            # self.model.insertRow(self, self.model.rowCount())
-            self.ui.textEdit.clear()
-
-    #def choosen(self, item):
-    #    self.ui.label_2.setText(item.text())
-     #   if self.chat_name not in self.chats:
-     #       self.chats.append(self.chat_name)
-      #      self.filename = self.chat_name + '.csv'
+            f = open(self.filename, 'w')
+            f.close()
+            self.data = []
+        else:
+            with open(self.filename, 'rb') as f:
+                self.data = pickle.load(f)
+        self.messagemodel = QStandardItemModel()
+        self.ui.listView_2.setModel(self.messagemodel)
+        for i in self.data:
+            item = QStandardItem(i)
+            self.messagemodel.appendRow(item)
 
 
 class Initialization(QDialog):
@@ -71,7 +90,7 @@ class Initialization(QDialog):
 
     def setupUi(self):
         self.setWindowTitle("Welcome")
-        self.move(300, 300)
+        self.move(300, 0)
         self.resize(800, 600)
         with open("init.qss", "r") as file:
             style = file.read()

@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtCore import QAbstractTableModel
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex
 from PyQt5.QtCore import Qt
 
 
@@ -12,12 +12,18 @@ class TableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return self._data[index.row()][index.column()]
 
+    def index(self, row, column):
+            return QModelIndex()
+
     def rowCount(self, index):
-        # The length of the outer list.
         return len(self._data)
 
     def columnCount(self, index):
-        # The following takes the first sub-list, and returns
-        # the length (only works if all rows are an equal length)
         return 2
+
+    def setData(self, index, value, role):
+        if role == Qt.DisplayRole:
+            self._data[index.row()][index.column()] = value
+            return 1
+        return 0
 

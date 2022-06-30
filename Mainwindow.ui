@@ -174,7 +174,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="listWidget"/>
+       <widget class="QListView" name="listView"/>
       </item>
       <item>
        <widget class="QPushButton" name="chat">
@@ -209,7 +209,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,9,2">
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,4,2">
       <property name="spacing">
        <number>10</number>
       </property>
@@ -267,7 +267,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QTableView" name="tableView"/>
+       <widget class="QListView" name="listView_2"/>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="7,1">
