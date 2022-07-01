@@ -1,26 +1,39 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from uimainw import Ui_MainWindow
-from PyQt5.QtCore import QDataStream, QByteArray
+from PyQt5.QtCore import QDataStream, QByteArray, QIODevice, qDebug
 from searcher import Searcher
 from changedata import DataChanger
 import sys
 import pickle
 from PyQt5.QtNetwork import QTcpSocket
+from PyQt5.QtCore import pyqtSignal, QObject
 
 testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2-5 pos or feed immortal']
-# потом удалю
 
+
+# потом удалю
 
 
 class MainWindow(QMainWindow):
     def __init__(self, name, parent=None):
         super().__init__(parent)
-        self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
-        self.socket = QTcpSocket()
+        self.socket = QTcpSocket(self)
+        self.socket.connectToHost("127.0.0.1", 2323, QIODevice.OpenModeFlag.ReadWrite)
+        self.data_ba = QByteArray()
+        self.data_ba.clear()
+        out = QDataStream(self.data_ba)
+        out.setVersion(QDataStream.Qt_5_12)
+        str = 'd' + name
+        out.writeQString(str)
+        self.socket.write(self.data_ba)
+        self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
+        self.inf = ['aaa', 'bbb', 1, 1, 1, 1] #сюда из бд приват дата
+        self.ghouls = testing_ghouls #сюда пользователи из бд
+        self.searcher = Searcher(self.ghouls)
+        self.data_change = DataChanger(self.inf)
         self.setupUi(name)
-
 
     def setupUi(self, name):
         super(MainWindow, self).__init__()
@@ -30,7 +43,7 @@ class MainWindow(QMainWindow):
         self.filename = self.myname + '.pickle'
         self.listmodel = QStandardItemModel()
         self.ui.listView.setModel(self.listmodel)
-        for i in testing_ghouls:
+        for i in self.chats:
             item = QStandardItem(i)
             self.listmodel.appendRow(item)
         if 1:  # тут типо проверка начата ли эта перепска, но запись об этом в бд, так что пока так
@@ -48,20 +61,40 @@ class MainWindow(QMainWindow):
         self.ui.send.clicked.connect(self.sendClicked)
         self.ui.listView.clicked.connect(self.picked)
         self.socket.readyRead.connect(self.getmessage)
-        #self.socket.disconnected.connect(self.socket.deleteLater())
-        #че ему в этот deletelater передать, не поняла вообще
+        self.data_change.accepted.connect(self.update_data)
+        self.searcher.accepted.connect(self.update_chats)
+        # self.socket.disconnected.connect(self.socket.deleteLater())
+        # че ему в этот deletelater передать, не поняла вообще
 
     def searchClicked(self):
-        self.cams = Searcher()
-        self.cams.show()
+        if(self.searcher.exec() == QDialog.Accepted):
+            qDebug('fine')
+            self.chats.append(self.searcher.chat_name)
+            msg = 's' + self.myname + ',' + self.searcher.selected
+            self.data_ba.clear()
+            out = QDataStream(self.data_ba)
+            out.setVersion(QDataStream.Qt_5_12)
+            out.writeQString(msg)
+            self.socket.write(self.data_ba)
+            self.listmodel.appendRow(QStandardItem(self.searcher.chat_name))
+            self.ui.listView.update()
+
+    def update_data(self):
+        if self.inf != self.data_change.my_inf:
+            self.inf = self.data_change.my_inf
+            msg = 'd' + self[0] + ',' + self[1] + ',' + self[2] + ',' + self[3] + ',' + self[4] + ',' + self[5]
+            self.data_ba.clear()
+            out = QDataStream(self.data_ba)
+            out.setVersion(QDataStream.Qt_5_12)
+            out.writeQString(msg)
+            self.socket.write(self.data_ba)
+
 
     def dataClicked(self):
-        self.cams = DataChanger()
-        self.cams.show()
+         self.data_change.exec()
 
     def sendClicked(self):
         if self.ui.textEdit.toPlainText() != '':
-            self.socket.connectToHost("127.0.0.1", 2323)
             msg = self.myname + ' : ' + self.ui.textEdit.toPlainText()
             self.data.append(msg)
             with open(self.filename, 'wb') as f:
@@ -70,6 +103,7 @@ class MainWindow(QMainWindow):
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
             f.close()
+            msg = 'm' + msg
             data_ba = QByteArray()
             data_ba.clear()
             out = QDataStream(data_ba)
@@ -82,13 +116,25 @@ class MainWindow(QMainWindow):
         data.setVersion(QDataStream.Qt_5_12)
         if data.status() == QDataStream.Ok:
             mssg = data.readQString()
-            self.data.append(mssg)
-            with open(self.filename, 'wb') as f:
-                pickle.dump(self.data, f)
-            self.ui.textEdit.clear()
-            self.messagemodel.appendRow(QStandardItem(mssg))
-            self.ui.listView_2.update()
-            f.close()
+            if mssg[0] == 'm':
+                self.data.append(mssg)  # mssg - "mname : text"
+                with open(self.filename, 'wb') as f:
+                    pickle.dump(self.data, f)
+                self.ui.textEdit.clear()
+                self.messagemodel.appendRow(QStandardItem(mssg))
+                self.ui.listView_2.update()
+                f.close()
+            if mssg[0] == 'd':  # mssg - "d, status, gay, cursed, gnf, abuzer"
+                self.inf = mssg.split(",")
+                self.inf[0] = self.myname
+            if mssg[0] == 'c':
+                self.chats == mssg.split(",")
+                if len(self.chats) == 0:
+                    self.chats.append(self.myname)
+                else:
+                    self.chats[0] == self.myname     #типо по дефолту есть чат с собой
+            if mssg[0] == 'g':
+                self.ghouls == mssg.split(',')
         # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
@@ -156,9 +202,9 @@ class Initialization(QDialog):
     def signinClicked(self):
         lg = self.login.text()
         psw = self.password.text()
-        #отправить их на сервер на проверку, с сигналом вход
-        if 0: #если сервер апрувнул
-            self.cams = MainWindow('cursed') #сюда передать lg
+        # отправить их на сервер на проверку, с сигналом вход
+        if 0:  # если сервер апрувнул
+            self.cams = MainWindow('cursed')  # сюда передать lg
             self.cams.show()
             self.close()
         else:
@@ -188,9 +234,10 @@ class Initialization(QDialog):
         self.close()
 
 
-
 if __name__ == "__main__":
+    sys.stderr = open("stderr.txt", 'w')
     app = QApplication(sys.argv)
     win = Initialization()
     win.show()
     sys.exit(app.exec_())
+    sys.stderr.close()

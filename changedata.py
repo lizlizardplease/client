@@ -5,25 +5,42 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 
 class DataChanger(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, inf, parent=None):
         super().__init__(parent)
-        self.setupUi()
+        self.setupUi(inf)
         self.changing = 0
+        self.my_inf = inf
 
-    def setupUi(self):
+    def setupUi(self, inf):
         super(DataChanger, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.ui.login.setText(inf[0])
+        self.ui.status.setText(inf[1])
+        self.ui.gay.setChecked(inf[2])
+        self.ui.cursed.setChecked(inf[3])
+        self.ui.gnf.setChecked(inf[4])
+        self.ui.abuzer.setChecked(inf[5])
         self.ui.away.clicked.connect(self.exitClicked)
         self.ui.change.clicked.connect(self.changeClicked)
 
     def changeClicked(self):
         if self.changing == 1:
+            self.my_inf[0] = self.ui.login.text()
+            self.my_inf[1] = self.ui.status.toPlainText()
+            self.my_inf[2] = self.ui.gay.isChecked()
+            self.my_inf[3] = self.ui.cursed.isChecked()
+            self.my_inf[4] = self.ui.gnf.isChecked()
+            self.my_inf[5] = self.ui.abuzer.isChecked()
             self.ui.change.setText("Change private data")
         else:
             self.ui.change.setText("Done")
         self.ui.login.setReadOnly(self.changing)
         self.ui.status.setReadOnly(self.changing)
+        self.ui.gnf.setCheckable(self.changing)
+        self.ui.gay.setCheckable(self.changing)
+        self.ui.abuzer.setCheckable(self.changing)
+        self.ui.cursed.setCheckable(self.changing)
         self.changing += 1
         self.changing %= 2
 
