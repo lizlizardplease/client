@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
         if(self.searcher.exec() == QDialog.Accepted):
             qDebug('fine')
             self.chats.append(self.searcher.chat_name)
-            msg = 's' + self.myname + ',' + self.searcher.selected
+            msg = 's' + self.searcher.chat_name + ',' + self.myname + ',' + self.searcher.selected
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
             out.setVersion(QDataStream.Qt_5_12)

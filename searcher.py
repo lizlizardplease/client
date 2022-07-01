@@ -41,7 +41,7 @@ class Searcher(QDialog):
             indexes = self.ui.listView.selectedIndexes()
             for i in indexes:
                 self.selected += self.ghoulsmodel.itemFromIndex(i).text() + ','
-            self.selected += self.ui.lineEdit.text()
+            self.selected = self.selected[:-1]
             self.fine = 1
             self.close()
 

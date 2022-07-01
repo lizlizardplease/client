@@ -2,7 +2,7 @@
 "mname : text" - отправил сообщение
 "aname" -  запрос private data, список начатых чатов, списка пользователей из бд
 "dname,status,gay,cursed,gnf,abuzer" - отправил обновленную private data
-"sname,ghoul1,ghoul2,ghoul3,chat_name" - созданный чат и список участников
+"schat_name,name,ghoul1,ghoul2,ghoul3" - созданный чат и список участников
 
 получаемые:
 "mname : text" - получил сообщение
