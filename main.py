@@ -29,8 +29,8 @@ class MainWindow(QMainWindow):
         out.writeQString(str)
         self.socket.write(self.data_ba)
         self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
-        self.inf = ['aaa', 'bbb', 1, 1, 1, 1] #сюда из бд приват дата
-        self.ghouls = testing_ghouls #сюда пользователи из бд
+        self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
+        self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls)
         self.data_change = DataChanger(self.inf)
         self.setupUi(name)
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         # че ему в этот deletelater передать, не поняла вообще
 
     def searchClicked(self):
-        if(self.searcher.exec_() == QDialog.Accepted):
+        if (self.searcher.exec_() == QDialog.Accepted):
             self.chats.append(self.searcher.chat_name)
             msg = 's' + self.searcher.chat_name + ',' + self.myname + ',' + self.searcher.selected
             self.data_ba.clear()
@@ -77,9 +77,10 @@ class MainWindow(QMainWindow):
             self.ui.listView.update()
 
     def dataClicked(self):
-         if self.data_change.exec_() == QDialog.Accepted:
+        if self.data_change.exec_() == QDialog.Accepted:
             self.inf = self.data_change.my_inf
-            msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(self.inf[4]) + ',' + str(self.inf[5])
+            msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(
+                self.inf[4]) + ',' + str(self.inf[5])
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
             out.setVersion(QDataStream.Qt_5_12)
@@ -125,7 +126,7 @@ class MainWindow(QMainWindow):
                 if len(self.chats) == 0:
                     self.chats.append(self.myname)
                 else:
-                    self.chats[0] == self.myname     #типо по дефолту есть чат с собой
+                    self.chats[0] == self.myname  # типо по дефолту есть чат с собой
             if mssg[0] == 'g':
                 self.ghouls == mssg.split(',')
         # по-хорошему обработать ошибку иначе
@@ -189,19 +190,38 @@ class Initialization(QDialog):
         self.bad_news.setObjectName('error')
         self.bad_news.move(70, 580)
         self.bad_news.setFixedWidth(700)
+        self.socket = QTcpSocket(self)
+        self.socket.connectToHost("127.0.0.1", 2323, QIODevice.OpenModeFlag.ReadWrite)
+        self.data_ba = QByteArray()
+        self.data_ba.clear()
         self.signin.clicked.connect(self.signinClicked)
         self.signup.clicked.connect(self.signupClicked)
+        self.socket.readyRead.connect(self.signingin)
 
-    def signinClicked(self):
+    def signingin(self):
         lg = self.login.text()
-        psw = self.password.text()
-        # отправить их на сервер на проверку, с сигналом вход
-        if 0:  # если сервер апрувнул
-            self.cams = MainWindow('cursed')  # сюда передать lg
+        data = QDataStream(self.socket)
+        data.setVersion(QDataStream.Qt_5_12)
+        if data.status() == QDataStream.Ok:
+            mssg = data.readQString()
+        else:
+            self.bad_news.setText("Error: some troubles, sorry")
+        if mssg == 'yes':  # если сервер апрувнул
+            self.cams = MainWindow(lg)
             self.cams.show()
             self.close()
         else:
             self.bad_news.setText("Error: wrong login or password")
+
+    def signinClicked(self):
+        lg = self.login.text()
+        psw = self.password.text()
+        self.data_ba.clear()
+        out = QDataStream(self.data_ba)
+        out.setVersion(QDataStream.Qt_5_12)
+        str = 'e' + lg + ',' + psw
+        out.writeQString(str)
+        self.socket.write(self.data_ba)
 
     def signupClicked(self):
         lg = self.login.text()
@@ -221,8 +241,15 @@ class Initialization(QDialog):
         if not (lg.isalnum() and psw.isalnum()):
             self.bad_news.setText("Password and login must contain only latin letters and numbers!")
             return
-        # отправить регистрацию на сервер
-        self.cams = MainWindow('cursed')  # сюда передать lg
+        lg = self.login.text()
+        psw = self.password.text()
+        self.data_ba.clear()
+        out = QDataStream(self.data_ba)
+        out.setVersion(QDataStream.Qt_5_12)
+        str = 'r' + lg + ',' + psw
+        out.writeQString(str)
+        self.socket.write(self.data_ba)
+        self.cams = MainWindow(lg)
         self.cams.show()
         self.close()
 
