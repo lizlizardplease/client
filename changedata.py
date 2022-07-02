@@ -10,6 +10,7 @@ class DataChanger(QDialog):
         self.setupUi(inf)
         self.changing = 0
         self.my_inf = inf
+        self.changed = 0
 
     def setupUi(self, inf):
         super(DataChanger, self).__init__()
@@ -21,6 +22,12 @@ class DataChanger(QDialog):
         self.ui.cursed.setChecked(inf[3])
         self.ui.gnf.setChecked(inf[4])
         self.ui.abuzer.setChecked(inf[5])
+        self.ui.login.setReadOnly(1)
+        self.ui.status.setReadOnly(1)
+        self.ui.gay.blockSignals(True)
+        self.ui.gnf.blockSignals(1)
+        self.ui.abuzer.blockSignals(1)
+        self.ui.cursed.blockSignals(1)
         self.ui.away.clicked.connect(self.exitClicked)
         self.ui.change.clicked.connect(self.changeClicked)
 
@@ -33,16 +40,23 @@ class DataChanger(QDialog):
             self.my_inf[4] = self.ui.gnf.isChecked()
             self.my_inf[5] = self.ui.abuzer.isChecked()
             self.ui.change.setText("Change private data")
+            self.changed = 1
         else:
             self.ui.change.setText("Done")
         self.ui.login.setReadOnly(self.changing)
         self.ui.status.setReadOnly(self.changing)
-        self.ui.gnf.setCheckable(self.changing)
-        self.ui.gay.setCheckable(self.changing)
-        self.ui.abuzer.setCheckable(self.changing)
-        self.ui.cursed.setCheckable(self.changing)
+        self.ui.gnf.blockSignals(self.changing)
+        self.ui.gay.blockSignals(self.changing)
+        self.ui.abuzer.blockSignals(self.changing)
+        self.ui.cursed.blockSignals(self.changing)
         self.changing += 1
         self.changing %= 2
 
     def exitClicked(self):
         self.close()
+
+    def closeEvent(self, event):
+        if self.changed:
+            self.accept()
+        else:
+            self.reject()

@@ -61,14 +61,11 @@ class MainWindow(QMainWindow):
         self.ui.send.clicked.connect(self.sendClicked)
         self.ui.listView.clicked.connect(self.picked)
         self.socket.readyRead.connect(self.getmessage)
-        self.data_change.accepted.connect(self.update_data)
-        self.searcher.accepted.connect(self.update_chats)
         # self.socket.disconnected.connect(self.socket.deleteLater())
         # че ему в этот deletelater передать, не поняла вообще
 
     def searchClicked(self):
-        if(self.searcher.exec() == QDialog.Accepted):
-            qDebug('fine')
+        if(self.searcher.exec_() == QDialog.Accepted):
             self.chats.append(self.searcher.chat_name)
             msg = 's' + self.searcher.chat_name + ',' + self.myname + ',' + self.searcher.selected
             self.data_ba.clear()
@@ -79,19 +76,15 @@ class MainWindow(QMainWindow):
             self.listmodel.appendRow(QStandardItem(self.searcher.chat_name))
             self.ui.listView.update()
 
-    def update_data(self):
-        if self.inf != self.data_change.my_inf:
+    def dataClicked(self):
+         if self.data_change.exec_() == QDialog.Accepted:
             self.inf = self.data_change.my_inf
-            msg = 'd' + self[0] + ',' + self[1] + ',' + self[2] + ',' + self[3] + ',' + self[4] + ',' + self[5]
+            msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(self.inf[4]) + ',' + str(self.inf[5])
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
             out.setVersion(QDataStream.Qt_5_12)
             out.writeQString(msg)
             self.socket.write(self.data_ba)
-
-
-    def dataClicked(self):
-         self.data_change.exec()
 
     def sendClicked(self):
         if self.ui.textEdit.toPlainText() != '':

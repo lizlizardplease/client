@@ -16,10 +16,9 @@ class Searcher(QDialog):
 
     def closeEvent(self, event):
         if self.fine:
-            event.accept()
+            self.accept()
         else:
-            qDebug('very bad')
-            event.ignore()
+            self.reject()
 
     def setupUi(self, ghouls):
         super(Searcher, self).__init__()
@@ -42,6 +41,6 @@ class Searcher(QDialog):
             for i in indexes:
                 self.selected += self.ghoulsmodel.itemFromIndex(i).text() + ','
             self.selected = self.selected[:-1]
+            self.chat_name = self.ui.lineEdit.text()
             self.fine = 1
             self.close()
-
