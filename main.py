@@ -46,11 +46,14 @@ class MainWindow(QMainWindow):
         for i in self.chats:
             item = QStandardItem(i)
             self.listmodel.appendRow(item)
-        if 1:  # тут типо проверка начата ли эта перепска, но запись об этом в бд, так что пока так
+        if (self.myname in self.chats):
             with open(self.filename, 'rb') as f:
                 self.data = pickle.load(f)
         else:
-            self.data = ['пока кать : мне на тебя покакать']
+            self.chats.append(self.chat_name)
+            f = open(self.filename, 'w')
+            f.close()
+            self.data = []
         self.messagemodel = QStandardItemModel()
         self.ui.listView_2.setModel(self.messagemodel)
         for i in self.data:
