@@ -16,11 +16,10 @@ testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, name, parent=None):
+    def __init__(self, name, socket, parent=None):
         super().__init__(parent)
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
-        self.socket = QTcpSocket(self)
-        self.socket.connectToHost("127.0.0.1", 2323, QIODevice.OpenModeFlag.ReadWrite)
+        self.socket = socket
         self.data_ba = QByteArray()
         self.data_ba.clear()
         out = QDataStream(self.data_ba)
@@ -31,11 +30,11 @@ class MainWindow(QMainWindow):
         self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
         self.ghouls = testing_ghouls  # сюда пользователи из бд
-        self.searcher = Searcher(self.ghouls)
+        self.searcher = Searcher(self.ghouls, socket)
         self.data_change = DataChanger(self.inf)
-        self.setupUi(name)
+        self.setupUi(name, socket)
 
-    def setupUi(self, name):
+    def setupUi(self, name, socket):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -82,8 +81,7 @@ class MainWindow(QMainWindow):
     def dataClicked(self):
         if self.data_change.exec_() == QDialog.Accepted:
             self.inf = self.data_change.my_inf
-            msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(
-                self.inf[4]) + ',' + str(self.inf[5])
+            msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(self.inf[4]) + ',' + str(self.inf[5])
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
             out.setVersion(QDataStream.Qt_5_12)
@@ -209,12 +207,15 @@ class Initialization(QDialog):
             mssg = data.readQString()
         else:
             self.bad_news.setText("Error: some troubles, sorry")
-        if mssg == 'accepted':  # если сервер апрувнул
-            self.cams = MainWindow(lg)
+        if mssg[1:] == 'accepted':  # если сервер апрувнул
+            self.cams = MainWindow(lg, self.socket)
             self.cams.show()
             self.close()
         else:
-            self.bad_news.setText("Error: wrong login or password")
+            if mssg[0] == 'e':
+                self.bad_news.setText("Error: wrong login or password")
+            else:
+                self.bad_news.setText("Login is already used. Try another one.")
 
     def signinClicked(self):
         lg = self.login.text()
@@ -253,7 +254,7 @@ class Initialization(QDialog):
         str = 'r' + lg + ',' + psw
         out.writeQString(str)
         self.socket.write(self.data_ba)
-        self.cams = MainWindow(lg)
+        self.cams = MainWindow(lg, self.socket)
         self.cams.show()
         self.close()
 
