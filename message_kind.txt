@@ -11,4 +11,4 @@
 "d,status,gay,cursed,gnf,abuzer" - получил private data
 "c,chat1,chat2,chat3" - получил список чатов
 "g,ghoul1,ghoul2,ghoul3" - cписок пользователей из бд
-"yes" - логин и пароль норм, можно в аккаунт
+"accepted" - логин и пароль норм, можно в аккаунт

@@ -206,7 +206,7 @@ class Initialization(QDialog):
             mssg = data.readQString()
         else:
             self.bad_news.setText("Error: some troubles, sorry")
-        if mssg == 'yes':  # если сервер апрувнул
+        if mssg == 'accepted':  # если сервер апрувнул
             self.cams = MainWindow(lg)
             self.cams.show()
             self.close()
@@ -222,6 +222,7 @@ class Initialization(QDialog):
         str = 'e' + lg + ',' + psw
         out.writeQString(str)
         self.socket.write(self.data_ba)
+        self.bad_news.setText("Checking information......")
 
     def signupClicked(self):
         lg = self.login.text()
