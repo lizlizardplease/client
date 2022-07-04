@@ -1,14 +1,21 @@
 отправляемые:
-"mname : text" - отправил сообщение
-"aname" -  запрос private data, список начатых чатов, списка пользователей из бд
-"dname,status,gay,cursed,gnf,abuzer" - отправил обновленную private data
-"schat_name,name,ghoul1,ghoul2,ghoul3" - созданный чат и список участников
+"mchat_name,name:text" - отправил сообщение
+"aname" -  запрос private data
+"cname" - запрос списка начатых чатов // мне вроде не надо
+"g" - запрос списка пользователей из бд
+"d,status,gay,cursed,gnf,abuzer" - отправил обновленную private data
+"schat_name:name,ghoul1,ghoul2,ghoul3" - созданный чат и список участников
 "elogin,password" - пытается зайти в аккаунт
 "rlogin,password" - регистрация
 
 получаемые:
-"mname : text" - получил сообщение
+"mchat_name,name : text" - получил сообщение  //хочу пробелы очень
 "d,status,gay,cursed,gnf,abuzer" - получил private data
-"c,chat1,chat2,chat3" - получил список чатов
+"c,chat1,chat2,chat3" - получил список чатов    // мне вроде не надо
 "g,ghoul1,ghoul2,ghoul3" - cписок пользователей из бд
-"accepted" - логин и пароль норм, можно в аккаунт
+"eaccepted" - логин и пароль норм, можно в аккаунт
+"edeclined" - логин и пароль не норм, не можно в аккаунт
+"raccepted" - логин и пароль норм, можно регистрировать
+"rdeclined" - логин и пароль не норм, не можно регистрировать
+"saccepted" - название чата норм, можно создать
+"sdeclined" - название чата не норм, не можно создать

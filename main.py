@@ -20,15 +20,22 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
         self.socket = socket
+        self.myname = name[1:]
         self.data_ba = QByteArray()
         self.data_ba.clear()
         out = QDataStream(self.data_ba)
         out.setVersion(QDataStream.Qt_5_12)
-        str = 'd' + name
+        str = 'a' + self.myname
         out.writeQString(str)
         self.socket.write(self.data_ba)
         self.messgs = {}
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
+        self.data_ba = QByteArray()
+        self.data_ba.clear()
+        out = QDataStream(self.data_ba)
+        out.setVersion(QDataStream.Qt_5_12)
+        str = 'g'
+        out.writeQString(str)
         self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls, socket)
         self.data_change = DataChanger(self.inf)
@@ -38,7 +45,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.myname = name[1:]
         self.filename = self.myname + '.pickle'
         if (name[0] == 'r'):
             f = open(self.filename, 'w')
@@ -70,7 +76,7 @@ class MainWindow(QMainWindow):
     def searchClicked(self):
         if (self.searcher.exec_() == QDialog.Accepted):
             self.messgs[self.searcher.chat_name] = []
-            msg = 's' + self.searcher.chat_name + ',' + self.myname + ',' + self.searcher.selected
+            msg = 's' + self.searcher.chat_name + ':' + self.myname + ',' + self.searcher.selected
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
             out.setVersion(QDataStream.Qt_5_12)
@@ -96,7 +102,7 @@ class MainWindow(QMainWindow):
             self.ui.textEdit.clear()
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
-            msg = 'm' + msg
+            msg = 'm' + self.chat_name + ','+ msg
             data_ba = QByteArray()
             data_ba.clear()
             out = QDataStream(data_ba)
