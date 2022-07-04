@@ -11,7 +11,7 @@ QPushButton {width: 250px;
              font-size: 20px;
              border-radius: 3px;}
 QPushButton#signin {background :#A153F4;}
-QPushButton#signup {background :red;}
+QPushButton#signup {background :#55ff7f;}
 QLineEdit {width:300px;
            background:#CEA4FC;
            border: none;}

@@ -55,8 +55,3 @@ class DataChanger(QDialog):
     def exitClicked(self):
         self.close()
 
-    def closeEvent(self, event):
-        if self.changed:
-            self.accept()
-        else:
-            self.reject()
