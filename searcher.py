@@ -1,9 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QAbstractItemView
 from mysearcher import Ui_Dialog
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from viewdata import OtherData
 from PyQt5.QtCore import pyqtSignal, QObject, qDebug
-
 
 
 class Searcher(QDialog):
@@ -32,6 +31,7 @@ class Searcher(QDialog):
             item = QStandardItem(i)
             item.setSelectable(1)
             self.ghoulsmodel.appendRow(item)
+        self.ui.listView.setSelectionMode(QAbstractItemView.MultiSelection)
         self.ui.create.clicked.connect(self.chat_created)
         self.ui.listView.doubleClicked.connect(self.picked)
 
@@ -39,7 +39,6 @@ class Searcher(QDialog):
         ghoul = self.ghoulsmodel.itemFromIndex(index).text()
         self.cams = OtherData(self.socket, ghoul)
         self.cams.exec_()
-
 
     def chat_created(self):
         if self.ui.lineEdit.text() == '':

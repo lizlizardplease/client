@@ -1,14 +1,13 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from uimainw import Ui_MainWindow
-from PyQt5.QtCore import QDataStream, QByteArray, QIODevice, qDebug
+from PyQt5.QtCore import QDataStream, QByteArray, QIODevice
 from searcher import Searcher
 from changedata import DataChanger
 import sys
 import pickle
-import os
 from PyQt5.QtNetwork import QTcpSocket
-from PyQt5.QtCore import pyqtSignal, QObject
+
 
 testing_ghouls = ['マchen abuzerマ hate toxic', 'blood tears watch me die', '2-5 pos or feed immortal']
 
@@ -29,7 +28,6 @@ class MainWindow(QMainWindow):
         out.writeQString(str)
         self.socket.write(self.data_ba)
         self.messgs = {}
-        #self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
         self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls, socket)
@@ -40,10 +38,15 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.myname = name
+        self.myname = name[1:]
         self.filename = self.myname + '.pickle'
-        with open(self.filename, 'rb') as f:
-            self.messgs = pickle.load(f)
+        if (name[0] == 'r'):
+            f = open(self.filename, 'w')
+            f.close()
+            self.messgs[self.chat_name] = []
+        else:
+            with open(self.filename, 'rb') as f:
+                self.messgs = pickle.load(f)
         self.listmodel = QStandardItemModel()
         self.ui.listView.setModel(self.listmodel)
         for i in self.messgs.keys():
@@ -90,12 +93,9 @@ class MainWindow(QMainWindow):
         if self.ui.textEdit.toPlainText() != '':
             msg = self.myname + ' : ' + self.ui.textEdit.toPlainText()
             self.messgs[self.chat_name].append(msg)
-           # with open(self.filename, 'wb') as f:
-            #    pickle.dump(self.data, f)
             self.ui.textEdit.clear()
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
-            #f.close()
             msg = 'm' + msg
             data_ba = QByteArray()
             data_ba.clear()
@@ -112,18 +112,15 @@ class MainWindow(QMainWindow):
             if mssg[0] == 'm':
                 mssgl = mssg.split(',')
                 self.messgs[mssgl[0][1:]].append(mssgl[1])
-                #with open(self.filename, 'wb') as f:
-                    #pickle.dump(self.data, f)
                 self.ui.textEdit.clear()
                 self.messagemodel.appendRow(QStandardItem(mssg))
                 self.ui.listView_2.update()
-                #f.close()
             if mssg[0] == 'd':  # mssg - "d, status, gay, cursed, gnf, abuzer"
                 self.inf = mssg.split(",")
                 self.inf[0] = self.myname
                 for i in self.inf[2:]:
                     i = bool(i)
-            #if mssg[0] == 'c':
+            #if mssg[0] == 'c':   #а зачем оно, у меня все в файле есть
                 #for i in mssg.split(","):
                 #if len(self.chats) == 0:
                    # self.chats.append(self.myname)
@@ -138,7 +135,6 @@ class MainWindow(QMainWindow):
         self.ui.label_2.setText(self.chat_name)
         if self.chat_name not in self.messgs.keys():
             self.messgs[self.chat_name] = []
-            #self.data = []
         self.messagemodel = QStandardItemModel()
         self.ui.listView_2.setModel(self.messagemodel)
         for i in self.messgs[self.chat_name]:
@@ -200,13 +196,14 @@ class Initialization(QDialog):
         self.socket.readyRead.connect(self.signingin)
 
     def signingin(self):
-        lg = self.login.text()
+        lg = 'e' + self.login.text()
         data = QDataStream(self.socket)
         data.setVersion(QDataStream.Qt_5_12)
         if data.status() == QDataStream.Ok:
             mssg = data.readQString()
         else:
             self.bad_news.setText("Error: some troubles, sorry")
+            return
         if mssg[1:] == 'accepted':  # если сервер апрувнул
             self.cams = MainWindow(lg, self.socket)
             self.cams.show()
@@ -246,12 +243,12 @@ class Initialization(QDialog):
         if not (lg.isalnum() and psw.isalnum()):
             self.bad_news.setText("Password and login must contain only latin letters and numbers!")
             return
-        lg = self.login.text()
+        lg = 'r' + self.login.text()
         psw = self.password.text()
         self.data_ba.clear()
         out = QDataStream(self.data_ba)
         out.setVersion(QDataStream.Qt_5_12)
-        str = 'r' + lg + ',' + psw
+        str = lg + ',' + psw
         out.writeQString(str)
         self.socket.write(self.data_ba)
         self.cams = MainWindow(lg, self.socket)
@@ -265,4 +262,4 @@ if __name__ == "__main__":
     win = Initialization()
     win.show()
     sys.exit(app.exec_())
-    sys.stderr.close()
+
