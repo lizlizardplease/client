@@ -6,6 +6,7 @@ from searcher import Searcher
 from changedata import DataChanger
 import sys
 import pickle
+import os
 from PyQt5.QtNetwork import QTcpSocket
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -27,7 +28,8 @@ class MainWindow(QMainWindow):
         str = 'd' + name
         out.writeQString(str)
         self.socket.write(self.data_ba)
-        self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
+        self.messgs = {}
+        #self.chats = ['blood tears watch me die']  # сюда из бд все чаты, которые создал гуль
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
         self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls, socket)
@@ -40,22 +42,18 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         self.myname = name
         self.filename = self.myname + '.pickle'
+        with open(self.filename, 'rb') as f:
+            self.messgs = pickle.load(f)
         self.listmodel = QStandardItemModel()
         self.ui.listView.setModel(self.listmodel)
-        for i in self.chats:
+        for i in self.messgs.keys():
             item = QStandardItem(i)
             self.listmodel.appendRow(item)
-        if (self.myname in self.chats):
-            with open(self.filename, 'rb') as f:
-                self.data = pickle.load(f)
-        else:
-            self.chats.append(self.chat_name)
-            f = open(self.filename, 'w')
-            f.close()
-            self.data = []
+        if (self.chat_name not in self.messgs.keys()):
+            self.messgs[self.chat_name] = []
         self.messagemodel = QStandardItemModel()
         self.ui.listView_2.setModel(self.messagemodel)
-        for i in self.data:
+        for i in self.messgs[self.chat_name]:
             item = QStandardItem(i)
             self.messagemodel.appendRow(item)
         self.ui.chat.clicked.connect(self.searchClicked)
@@ -68,7 +66,7 @@ class MainWindow(QMainWindow):
 
     def searchClicked(self):
         if (self.searcher.exec_() == QDialog.Accepted):
-            self.chats.append(self.searcher.chat_name)
+            self.messgs[self.searcher.chat_name] = []
             msg = 's' + self.searcher.chat_name + ',' + self.myname + ',' + self.searcher.selected
             self.data_ba.clear()
             out = QDataStream(self.data_ba)
@@ -91,13 +89,13 @@ class MainWindow(QMainWindow):
     def sendClicked(self):
         if self.ui.textEdit.toPlainText() != '':
             msg = self.myname + ' : ' + self.ui.textEdit.toPlainText()
-            self.data.append(msg)
-            with open(self.filename, 'wb') as f:
-                pickle.dump(self.data, f)
+            self.messgs[self.chat_name].append(msg)
+           # with open(self.filename, 'wb') as f:
+            #    pickle.dump(self.data, f)
             self.ui.textEdit.clear()
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
-            f.close()
+            #f.close()
             msg = 'm' + msg
             data_ba = QByteArray()
             data_ba.clear()
@@ -112,43 +110,45 @@ class MainWindow(QMainWindow):
         if data.status() == QDataStream.Ok:
             mssg = data.readQString()
             if mssg[0] == 'm':
-                self.data.append(mssg)  # mssg - "mname : text"
-                with open(self.filename, 'wb') as f:
-                    pickle.dump(self.data, f)
+                mssgl = mssg.split(',')
+                self.messgs[mssgl[0][1:]].append(mssgl[1])
+                #with open(self.filename, 'wb') as f:
+                    #pickle.dump(self.data, f)
                 self.ui.textEdit.clear()
                 self.messagemodel.appendRow(QStandardItem(mssg))
                 self.ui.listView_2.update()
-                f.close()
+                #f.close()
             if mssg[0] == 'd':  # mssg - "d, status, gay, cursed, gnf, abuzer"
                 self.inf = mssg.split(",")
                 self.inf[0] = self.myname
-            if mssg[0] == 'c':
-                self.chats == mssg.split(",")
-                if len(self.chats) == 0:
-                    self.chats.append(self.myname)
-                else:
-                    self.chats[0] == self.myname  # типо по дефолту есть чат с собой
+                for i in self.inf[2:]:
+                    i = bool(i)
+            #if mssg[0] == 'c':
+                #for i in mssg.split(","):
+                #if len(self.chats) == 0:
+                   # self.chats.append(self.myname)
+                #else:
+                    #self.chats[0] == self.myname  # типо по дефолту есть чат с собой
             if mssg[0] == 'g':
-                self.ghouls == mssg.split(',')
+              self.ghouls = mssg.split(',')
         # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
         self.chat_name = self.listmodel.itemFromIndex(index).text()
         self.ui.label_2.setText(self.chat_name)
-        self.filename = self.chat_name + '.pickle'
-        if self.chat_name not in self.chats:
-            self.chats.append(self.chat_name)
-            f = open(self.filename, 'w')
-            f.close()
-            self.data = []
-        else:
-            with open(self.filename, 'rb') as f:
-                self.data = pickle.load(f)
+        if self.chat_name not in self.messgs.keys():
+            self.messgs[self.chat_name] = []
+            #self.data = []
         self.messagemodel = QStandardItemModel()
         self.ui.listView_2.setModel(self.messagemodel)
-        for i in self.data:
+        for i in self.messgs[self.chat_name]:
             item = QStandardItem(i)
             self.messagemodel.appendRow(item)
+
+    def closeEvent(self, event):
+        with open(self.filename, 'wb') as f:
+            pickle.dump(self.messgs, f)
+
 
 
 class Initialization(QDialog):
