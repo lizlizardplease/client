@@ -21,46 +21,41 @@ class MainWindow(QMainWindow):
         self.chat_name = 'self chat'  # по дефолту изначально открыта переписка с собой
         self.socket = socket
         self.myname = name[1:]
-        self.data_ba = QByteArray()
-        self.data_ba.clear()
-        out = QDataStream(self.data_ba)
-        out.setVersion(QDataStream.Qt_5_12)
         str = 'a' + self.myname
-        out.writeQString(str)
-        self.socket.write(self.data_ba)
+        self.socket.write(str.encode('utf-8'))
         self.messgs = {}
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
-        self.data_ba = QByteArray()
-        self.data_ba.clear()
-        out = QDataStream(self.data_ba)
-        out.setVersion(QDataStream.Qt_5_12)
         str = 'g'
-        out.writeQString(str)
+        self.socket.write(str.encode('utf-8'))
         self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls, socket)
         self.data_change = DataChanger(self.inf)
         self.setupUi(name, socket)
 
+
     def setupUi(self, name, socket):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.messagemodel = QStandardItemModel()
+        self.listmodel = QStandardItemModel()
         self.filename = self.myname + '.pickle'
-        if (name[0] == 'r'):
+        if (1):
             f = open(self.filename, 'w')
             f.close()
             self.messgs[self.chat_name] = []
         else:
             with open(self.filename, 'rb') as f:
                 self.messgs = pickle.load(f)
-        self.listmodel = QStandardItemModel()
         self.ui.listView.setModel(self.listmodel)
         for i in self.messgs.keys():
             item = QStandardItem(i)
             self.listmodel.appendRow(item)
-        if (self.chat_name not in self.messgs.keys()):
+        if self.chat_name in self.messgs.keys():
+            pass
+        else:
             self.messgs[self.chat_name] = []
-        self.messagemodel = QStandardItemModel()
+
         self.ui.listView_2.setModel(self.messagemodel)
         for i in self.messgs[self.chat_name]:
             item = QStandardItem(i)
@@ -74,14 +69,10 @@ class MainWindow(QMainWindow):
         # че ему в этот deletelater передать, не поняла вообще
 
     def searchClicked(self):
-        if (self.searcher.exec_() == QDialog.Accepted):
+        if self.searcher.exec_() == QDialog.Accepted:
             self.messgs[self.searcher.chat_name] = []
             msg = 's' + self.searcher.chat_name + ':' + self.myname + ',' + self.searcher.selected
-            self.data_ba.clear()
-            out = QDataStream(self.data_ba)
-            out.setVersion(QDataStream.Qt_5_12)
-            out.writeQString(msg)
-            self.socket.write(self.data_ba)
+            self.socket.write(msg.encode('utf-8'))
             self.listmodel.appendRow(QStandardItem(self.searcher.chat_name))
             self.ui.listView.update()
 
@@ -89,11 +80,7 @@ class MainWindow(QMainWindow):
         if self.data_change.exec_() == QDialog.Accepted:
             self.inf = self.data_change.my_inf
             msg = 'd' + self.inf[0] + ',' + self.inf[1] + ',' + str(self.inf[2]) + ',' + str(self.inf[3]) + ',' + str(self.inf[4]) + ',' + str(self.inf[5])
-            self.data_ba.clear()
-            out = QDataStream(self.data_ba)
-            out.setVersion(QDataStream.Qt_5_12)
-            out.writeQString(msg)
-            self.socket.write(self.data_ba)
+            self.socket.write(msg.encode('utf-8'))
 
     def sendClicked(self):
         if self.ui.textEdit.toPlainText() != '':
@@ -103,37 +90,29 @@ class MainWindow(QMainWindow):
             self.messagemodel.appendRow(QStandardItem(msg))
             self.ui.listView_2.update()
             msg = 'm' + self.chat_name + ','+ msg
-            data_ba = QByteArray()
-            data_ba.clear()
-            out = QDataStream(data_ba)
-            out.setVersion(QDataStream.Qt_5_12)
-            out.writeQString(msg)
-            self.socket.write(data_ba)
+            self.socket.write(msg.encode('utf-8'))
 
     def getmessage(self):
-        data = QDataStream(self.socket)
-        data.setVersion(QDataStream.Qt_5_12)
-        if data.status() == QDataStream.Ok:
-            mssg = data.readQString()
-            if mssg[0] == 'm':
-                mssgl = mssg.split(',')
-                self.messgs[mssgl[0][1:]].append(mssgl[1])
-                self.ui.textEdit.clear()
-                self.messagemodel.appendRow(QStandardItem(mssg))
-                self.ui.listView_2.update()
-            if mssg[0] == 'd':  # mssg - "d, status, gay, cursed, gnf, abuzer"
-                self.inf = mssg.split(",")
-                self.inf[0] = self.myname
-                for i in self.inf[2:]:
-                    i = bool(i)
-            #if mssg[0] == 'c':   #а зачем оно, у меня все в файле есть
-                #for i in mssg.split(","):
-                #if len(self.chats) == 0:
-                   # self.chats.append(self.myname)
-                #else:
-                    #self.chats[0] == self.myname  # типо по дефолту есть чат с собой
-            if mssg[0] == 'g':
-              self.ghouls = mssg.split(',')
+        mssg = self.socket.read(1024).decode('utf-8')
+        if mssg[0] == 'm':
+            mssgl = mssg.split(',')
+            self.messgs[mssgl[0][1:]].append(mssgl[1])
+            self.ui.textEdit.clear()
+            self.messagemodel.appendRow(QStandardItem(mssg))
+            self.ui.listView_2.update()
+        if mssg[0] == 'd':  # mssg - "d, status, gay, cursed, gnf, abuzer"
+            self.inf = mssg.split(",")
+            self.inf[0] = self.myname
+            for i in self.inf[2:]:
+                i = bool(i)
+        if mssg[0] == 'c':
+            for i in mssg.split(","):
+                if len(self.chats) == 0:
+                    self.chats.append(self.myname)
+                else:
+                    self.chats[0] == self.myname  # типо по дефолту есть чат с собой
+        if mssg[0] == 'g':
+            self.ghouls = mssg.split(',')
         # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
@@ -150,6 +129,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         with open(self.filename, 'wb') as f:
             pickle.dump(self.messgs, f)
+        self.socket.disconnectFromHost()
 
 
 
@@ -194,7 +174,7 @@ class Initialization(QDialog):
         self.bad_news.move(70, 580)
         self.bad_news.setFixedWidth(700)
         self.socket = QTcpSocket(self)
-        self.socket.connectToHost("127.0.0.1", 2323, QIODevice.OpenModeFlag.ReadWrite)
+        self.socket.connectToHost("localhost", 5431, QIODevice.OpenModeFlag.ReadWrite)
         self.data_ba = QByteArray()
         self.data_ba.clear()
         self.signin.clicked.connect(self.signinClicked)
@@ -203,13 +183,7 @@ class Initialization(QDialog):
 
     def signingin(self):
         lg = 'e' + self.login.text()
-        data = QDataStream(self.socket)
-        data.setVersion(QDataStream.Qt_5_12)
-        if data.status() == QDataStream.Ok:
-            mssg = data.readQString()
-        else:
-            self.bad_news.setText("Error: some troubles, sorry")
-            return
+        mssg = self.socket.read(1024).decode('utf-8')
         if mssg[1:] == 'accepted':  # если сервер апрувнул
             self.cams = MainWindow(lg, self.socket)
             self.cams.show()
@@ -223,12 +197,8 @@ class Initialization(QDialog):
     def signinClicked(self):
         lg = self.login.text()
         psw = self.password.text()
-        self.data_ba.clear()
-        out = QDataStream(self.data_ba)
-        out.setVersion(QDataStream.Qt_5_12)
         str = 'e' + lg + ',' + psw
-        out.writeQString(str)
-        self.socket.write(self.data_ba)
+        self.socket.write(str.encode('utf-8'))
         self.bad_news.setText("Checking information......")
 
     def signupClicked(self):
@@ -251,12 +221,8 @@ class Initialization(QDialog):
             return
         lg = 'r' + self.login.text()
         psw = self.password.text()
-        self.data_ba.clear()
-        out = QDataStream(self.data_ba)
-        out.setVersion(QDataStream.Qt_5_12)
         str = lg + ',' + psw
-        out.writeQString(str)
-        self.socket.write(self.data_ba)
+        self.socket.write(str.encode('utf-8'))
         self.cams = MainWindow(lg, self.socket)
         self.cams.show()
         self.close()

@@ -34,6 +34,7 @@ class DataChanger(QDialog):
     def changeClicked(self):
         if self.changing == 1:
             self.my_inf[0] = self.ui.login.text()
+            self.ui.login.setReadOnly(1)
             self.my_inf[1] = self.ui.status.toPlainText()
             self.my_inf[2] = self.ui.gay.isChecked()
             self.my_inf[3] = self.ui.cursed.isChecked()
@@ -43,7 +44,6 @@ class DataChanger(QDialog):
             self.changed = 1
         else:
             self.ui.change.setText("Done")
-        self.ui.login.setReadOnly(self.changing)
         self.ui.status.setReadOnly(self.changing)
         self.ui.gnf.blockSignals(self.changing)
         self.ui.gay.blockSignals(self.changing)
