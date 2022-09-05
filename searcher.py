@@ -6,13 +6,16 @@ from PyQt5.QtCore import pyqtSignal, QObject, qDebug
 
 
 class Searcher(QDialog):
-    def __init__(self, ghouls, socket, parent=None):
+    is_friend = pyqtSignal(str)
+
+
+    def __init__(self, ghouls, parent=None):
         super().__init__(parent)
         self.ghouls = ghouls
         self.selected = ''
         self.chat_name = ''
         self.fine = 0
-        self.setupUi(ghouls, socket)
+        self.setupUi(ghouls)
 
     def closeEvent(self, event):
         if self.fine:
@@ -20,9 +23,8 @@ class Searcher(QDialog):
         else:
             self.reject()
 
-    def setupUi(self, ghouls, socket):
+    def setupUi(self, ghouls):
         super(Searcher, self).__init__()
-        self.socket = socket
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.ghoulsmodel = QStandardItemModel()
@@ -37,7 +39,11 @@ class Searcher(QDialog):
 
     def picked(self, index):
         ghoul = self.ghoulsmodel.itemFromIndex(index).text()
-        self.cams = OtherData(self.socket, ghoul)
+        self.is_friend.emit(ghoul)
+        self.go_data('hhhhhuy, q, 1, 1,1,1,1,1')
+
+    def go_data(self, inf):
+        self.cams = OtherData(inf)
         self.cams.exec_()
 
     def chat_created(self):
