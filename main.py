@@ -143,8 +143,14 @@ class MainWindow(QMainWindow):
                     self.chats.append(self.myname)
                 else:
                     self.chats[0] == self.myname  # типо по дефолту есть чат с собой
-        if mssg[0] == 'g':
-            self.ghouls = mssg[1:].split(',')
+        if mssg[0] == '~':
+            tmp = mssg[2:].split(',')
+            self.ghouls = tmp[:5]
+            self.inf = tmp[5:]
+            self.inf[0] = self.myname
+            for i in self.inf[2:]:
+                i = bool(i)
+
         # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
