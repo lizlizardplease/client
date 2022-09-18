@@ -44,13 +44,11 @@ class MainWindow(QMainWindow):
         # в этот deletelater передать, не поняла вообще
 
     def environment(self):
-        str = 'a' + self.myname
+        str = 'g' + self.myname
         self.not_my = 0
         self.to_artem.ask(str)
         self.messgs = {}
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
-        str = 'g'
-        self.to_artem.ask(str)
         self.ghouls = testing_ghouls  # сюда пользователи из бд
         self.searcher = Searcher(self.ghouls)
         self.data_change = DataChanger(self.inf)
@@ -146,7 +144,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.chats[0] == self.myname  # типо по дефолту есть чат с собой
         if mssg[0] == 'g':
-            self.ghouls = mssg.split(',')
+            self.ghouls = mssg[1:].split(',')
         # по-хорошему обработать ошибку иначе
 
     def picked(self, index):
