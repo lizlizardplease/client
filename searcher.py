@@ -40,7 +40,6 @@ class Searcher(QDialog):
     def picked(self, index):
         ghoul = self.ghoulsmodel.itemFromIndex(index).text()
         self.is_friend.emit(ghoul)
-        self.go_data('hhhhhuy, q, 1, 1,1,1,1,1')
 
     def go_data(self, inf):
         self.cams = OtherData(inf)

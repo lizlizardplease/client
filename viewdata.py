@@ -17,11 +17,11 @@ class OtherData(QDialog):
         self.ui.status.setText(inf[1])
         lbls = [self.ui.gay, self.ui.cursed, self.ui.gnf, self.ui.abuzer]
         for i in range(2, 6):
-            if (inf[i]):
+            if (bool(inf[i])):
                 lbls[i - 2].setText("Yes")
             else:
                 lbls[i - 2].setText("No")
-        self.ui.name.setText(inf[0])
+        self.ui.name.setText(inf[0][1:])
         self.ui.pushButton.clicked.connect(self.ok)
 
     def ok(self):

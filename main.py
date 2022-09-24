@@ -44,14 +44,13 @@ class MainWindow(QMainWindow):
         # в этот deletelater передать, не поняла вообще
 
     def environment(self):
-        str = 'g' + self.myname
-        self.not_my = 0
-        self.to_artem.ask(str)
-        self.messgs = {}
         self.inf = ['aaa', 'bbb', 1, 1, 1, 1]  # сюда из бд приват дата
         self.ghouls = testing_ghouls  # сюда пользователи из бд
-        self.searcher = Searcher(self.ghouls)
-        self.data_change = DataChanger(self.inf)
+        str = 'g' + self.myname
+        self.not_my = 0
+        self.chats = []
+        self.to_artem.ask(str)
+        self.messgs = {}
         self.filename = self.myname + '.pickle'
         if (1):
             f = open(self.filename, 'w')
@@ -67,12 +66,11 @@ class MainWindow(QMainWindow):
             pass
         else:
             self.messgs[self.chat_name] = []
-
         self.ui.listView_2.setModel(self.messagemodel)
         for i in self.messgs[self.chat_name]:
             item = QStandardItem(i)
             self.messagemodel.appendRow(item)
-        self.searcher.is_friend.connect(self.friending)
+
 
 
     def friending(self, ghoul):
@@ -121,6 +119,7 @@ class MainWindow(QMainWindow):
 
 
     def getmessage(self, mssg):
+        print(mssg)
         if mssg[0] == 'm':
             mssgl = mssg.split(',')
             self.messgs[mssgl[0][1:]].append(mssgl[1])
@@ -135,21 +134,35 @@ class MainWindow(QMainWindow):
             else:
                 self.inf = mssg.split(",")
                 self.inf[0] = self.myname
-                for i in self.inf[2:]:
-                    i = bool(i)
+        if mssg[0] == 'v':
+            self.chats.append(mssg[1:])
         if mssg[0] == 'c':
             for i in mssg.split(","):
-                if len(self.chats) == 0:
-                    self.chats.append(self.myname)
-                else:
-                    self.chats[0] == self.myname  # типо по дефолту есть чат с собой
+                self.chats.append(i)
+                self.listmodel.appendRow(QStandardItem(i))
+            if len(self.chats) == 0:
+               self.chats.append(self.myname)
         if mssg[0] == '~':
-            tmp = mssg[2:].split(',')
-            self.ghouls = tmp[:5]
-            self.inf = tmp[5:]
+            z = mssg[2:].split('@')
+            for i in z[1].split(","):
+                self.chats.append(i)
+                self.listmodel.appendRow(QStandardItem(i))
+            if len(self.chats) == 0:
+               self.chats.append(self.myname)
+            tmp = z[0].split(',')
+            self.ghouls = tmp[7:]
+            self.inf = tmp[:6]
+            print(self.ghouls)
+            print(self.inf)
+            self.searcher = Searcher(self.ghouls)
+            print('zxc')
             self.inf[0] = self.myname
-            for i in self.inf[2:]:
-                i = bool(i)
+            print('zxc')
+            self.data_change = DataChanger(self.inf)
+            print('zxc')
+            print('zxc')
+            self.searcher.is_friend.connect(self.friending)
+            print('zxc')
 
         # по-хорошему обработать ошибку иначе
 
@@ -178,4 +191,3 @@ if __name__ == "__main__":
     win = MainWindow()
     win.show()
     sys.exit(app.exec_())
-
