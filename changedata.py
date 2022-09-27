@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 
 class DataChanger(QDialog):
+    data_changed = pyqtSignal(str)
     def __init__(self, inf, parent=None):
         super().__init__(parent)
         self.setupUi(inf)
@@ -19,6 +20,7 @@ class DataChanger(QDialog):
         self.ui.login.setText(inf[0])
         self.ui.status.setText(inf[1])
         self.ui.gay.setChecked(bool(inf[2]))
+        print(bool(inf[4]))
         self.ui.cursed.setChecked(bool(inf[3]))
         self.ui.gnf.setChecked(bool(inf[4]))
         self.ui.abuzer.setChecked(bool(inf[5]))
@@ -36,10 +38,13 @@ class DataChanger(QDialog):
             self.my_inf[0] = self.ui.login.text()
             self.ui.login.setReadOnly(1)
             self.my_inf[1] = self.ui.status.toPlainText()
-            self.my_inf[2] = self.ui.gay.isChecked()
-            self.my_inf[3] = self.ui.cursed.isChecked()
-            self.my_inf[4] = self.ui.gnf.isChecked()
-            self.my_inf[5] = self.ui.abuzer.isChecked()
+            self.my_inf[2] = str(self.ui.gay.isChecked())
+            self.my_inf[3] = str(self.ui.cursed.isChecked())
+            self.my_inf[4] = str(self.ui.gnf.isChecked())
+            self.my_inf[5] = str(self.ui.abuzer.isChecked())
+            m = 'd' +','.join(self.my_inf)
+            self.data_changed.emit(m)
+            print('zxczxc')
             self.ui.change.setText("Change private data")
             self.changed = 1
         else:
@@ -53,5 +58,4 @@ class DataChanger(QDialog):
         self.changing %= 2
 
     def exitClicked(self):
-        self.close()
-
+        self.accept()

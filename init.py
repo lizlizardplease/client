@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPixmap
 
 class Initialization(QDialog):
     enter = QtCore.pyqtSignal(str)
+    leave = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,6 +51,7 @@ class Initialization(QDialog):
 
     def signinClicked(self):
         strr = 'e' + self.login.text() + ',' + self.password.text()
+        #strr = 'eaccepted'
         self.bad_news.setText("Checking information......")
         self.enter.emit(strr)
 

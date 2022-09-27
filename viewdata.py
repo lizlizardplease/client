@@ -14,7 +14,7 @@ class OtherData(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         inf = mssg.split(',')
-        self.ui.status.setText(inf[1])
+        self.ui.textEdit.setText(inf[1])
         lbls = [self.ui.gay, self.ui.cursed, self.ui.gnf, self.ui.abuzer]
         for i in range(2, 6):
             if (bool(inf[i])):
